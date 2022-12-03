@@ -36,6 +36,9 @@ class MainActivity : AppCompatActivity() {
                 if(second =="00") binding.MinView.startAnimation(AnimationUtils.loadAnimation(this,R.anim.flip_point_from_middle))
                 binding.HourView.text = hour
                 binding.MinView.text = minute
+                binding.SecView.text = second
+                if(hour> 12.toString()) binding.AmPmView.text = "PM"
+                binding.SecView.startAnimation(AnimationUtils.loadAnimation(this,R.anim.flip_point_from_middle))
                 blink()
             }
         }.start()
