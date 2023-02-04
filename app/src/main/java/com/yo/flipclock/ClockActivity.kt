@@ -1,11 +1,19 @@
 package com.yo.flipclock
 
+import android.content.Context
+import android.content.pm.ActivityInfo
 import android.content.res.Configuration
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.os.Bundle
 import android.os.Handler
 import android.util.DisplayMetrics
+import android.util.Log
 import android.view.WindowManager
 import android.view.animation.AnimationUtils
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.yo.flipclock.databinding.ActivityClockBinding
@@ -19,9 +27,27 @@ class ClockActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityClockBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        val myActivity = this@ClockActivity
 
-        //        val display: Display = (getSystemService(WINDOW_SERVICE) as WindowManager).defaultDisplay
-//        Log.e("Orientation",display.orientation.toString())
+        val sm: SensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        var list: MutableList<Sensor> = sm.getSensorList(Sensor.TYPE_ACCELEROMETER)
+        var se = object : SensorEventListener {
+            override fun onSensorChanged(sensorEvent: SensorEvent?) {
+                var values: FloatArray? = sensorEvent?.values
+                val x: Float? = values?.get(0)
+                val y: Float? = values?.get(1)
+                val z: Float? = values?.get(2)
+                if(y!! < 0.0){
+                    myActivity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
+                }
+                if(y>0) {
+                    myActivity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                }
+            }
+
+            override fun onAccuracyChanged(p0: Sensor?, p1: Int) = Unit
+        }
+        sm.registerListener(se, list[0], SensorManager.SENSOR_DELAY_NORMAL)
 
         val displayMetrics = DisplayMetrics()
         window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
@@ -54,9 +80,9 @@ class ClockActivity : AppCompatActivity() {
                 val hourFormat = SimpleDateFormat("HH", Locale.getDefault())
                 val minuteFormat = SimpleDateFormat("mm", Locale.getDefault())
                 val secondFormat = SimpleDateFormat("ss", Locale.getDefault())
-                var hour = hourFormat.format(Date())
-                var minute = minuteFormat.format(Date())
-                var second = secondFormat.format(Date()).toString()
+                val hour = hourFormat.format(Date())
+                val minute = minuteFormat.format(Date())
+                val second = secondFormat.format(Date()).toString()
                 if(second =="00") binding.minView.startAnimation(AnimationUtils.loadAnimation(this,R.anim.flip_point_from_middle))
                 binding.hourView.text = hour
                 binding.minView.text = minute
